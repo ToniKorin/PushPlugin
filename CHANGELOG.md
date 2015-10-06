@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 1.2.0 (6.10.2015)
+- Moved plugin to npm
+
 #### Version 1.1.3 (6.10.2015)
 - Added tapNotificationToStartApp parameter for Android to optionally start the paused app, when user is tapping the notification
 
