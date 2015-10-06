@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 1.1.3 (6.10.2015)
+- Added tapNotificationToStartApp parameter for Android to optionally start the paused app, when user is tapping the notification
+
 #### Version 1.1.2 (24.7.2015)
 - Added setAutoMessageCount for Android to optionally increase the message count automatically
 

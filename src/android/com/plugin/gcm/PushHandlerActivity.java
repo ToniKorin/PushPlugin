@@ -29,7 +29,7 @@ public class PushHandlerActivity extends Activity
 
 		finish();
 
-		if (!isPushPluginActive) {
+		if (!isPushPluginActive || PushPlugin.tapNotificationToStartApp()) {
 			forceMainActivityReload();
 		}
 	}

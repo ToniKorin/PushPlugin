@@ -36,6 +36,7 @@ public class PushPlugin extends CordovaPlugin {
 	private static boolean gForeground = false;
 	private static boolean gReceiveNotificationInBackground = false;
 	private static boolean gStartServiceAlwaysInBackground = false;
+	private static boolean gTapNotificationToStartApp = false;
 
 	/**
 	 * Gets the application context from cordova's main activity.
@@ -72,6 +73,7 @@ public class PushPlugin extends CordovaPlugin {
 				// https://github.com/katzer/cordova-plugin-background-mode
 				gReceiveNotificationInBackground = jo.optBoolean("receiveNotificationInBackground",false);
 				gStartServiceAlwaysInBackground = jo.optBoolean("startServiceAlwaysInBackground",false);
+				gTapNotificationToStartApp = jo.optBoolean("tapNotificationToStartApp",false);
 
 				GCMRegistrar.register(getApplicationContext(), gSenderID);
 				result = true;
@@ -259,11 +261,9 @@ public class PushPlugin extends CordovaPlugin {
 
 	public static boolean isActive() {return gWebView != null;}
 
-	public static boolean receiveNotificationInBackground() {
-		return gReceiveNotificationInBackground;
-	}
+	public static boolean receiveNotificationInBackground() {return gReceiveNotificationInBackground; }
 
-	public static boolean startServiceAlwaysInBackground() {
-		return gStartServiceAlwaysInBackground;
-	}
+	public static boolean startServiceAlwaysInBackground() { return gStartServiceAlwaysInBackground; }
+
+	public static boolean tapNotificationToStartApp() { return gTapNotificationToStartApp; }
 }
