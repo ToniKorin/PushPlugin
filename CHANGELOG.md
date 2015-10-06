@@ -1,5 +1,5 @@
 ## ChangeLog
-#### Version 1.2.0 (6.10.2015)
+#### Version 2.0.0 (6.10.2015)
 - Moved plugin to npm
 
 #### Version 1.1.3 (6.10.2015)

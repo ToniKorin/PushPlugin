@@ -3,11 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
-    id="com.tonikorin.cordova.plugin.PushPlugin"
-    version="1.2.0">
+    id="cordova-plugin-background-push"
+    version="2.0.0">
 
   <name>PushPlugin</name>
-	<author>Bob Easterday</author>
+	<author>Toni Korin</author>
 
 	<description>
 		This plugin allows your application to receive push notifications on Android, iOS, WP8 and Windows8 devices.
