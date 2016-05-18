@@ -64,6 +64,11 @@ PushNotification.prototype.setApplicationIconBadgeNumber = function(successCallb
     cordova.exec(successCallback, errorCallback, "PushPlugin", "setApplicationIconBadgeNumber", [{badge: badge}]);
 };
 
+// Create and show a local Android notification
+PushNotification.prototype.localNotification = function(messageInfo) {
+    cordova.exec(null, null, "PushPlugin", "localNotification", [messageInfo]);
+};
+
 // Call this to set/reset/unset auto increment of android message number
 PushNotification.prototype.setAutoMessageCount = function(count) {
     cordova.exec(null, null, "PushPlugin", "setAutoMessageCount", [count]);

@@ -26,8 +26,10 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String REGISTER = "register";
 	public static final String UNREGISTER = "unregister";
 	public static final String SET_AUTO_MESSAGE_COUNT = "setAutoMessageCount";
+	public static final String LOCAL_NOTIFICATION = "localNotification";
 	public static final String MESSAGE_COUNT = "messageCount";
 	public static final String EXIT = "exit";
+	private static final LocalNotification localNotification = new LocalNotification();
 
 	private static CordovaWebView gWebView;
 	private static String gECB;
@@ -56,7 +58,6 @@ public class PushPlugin extends CordovaPlugin {
 		if (REGISTER.equals(action)) {
 
 			Log.v(TAG, "execute: data=" + data.toString());
-
 			try {
 				JSONObject jo = data.getJSONObject(0);
 
@@ -108,6 +109,22 @@ public class PushPlugin extends CordovaPlugin {
 				editor.remove(MESSAGE_COUNT);
 			}
 			editor.commit();
+		} else if (LOCAL_NOTIFICATION.equals(action)) {
+			Log.v(TAG, "localNotification");
+			try {
+				JSONObject jo = data.getJSONObject(0);
+				Bundle extras = new Bundle();
+				for(Iterator<String> iter = jo.keys();iter.hasNext();) {
+					String key = iter.next();
+					String value = jo.getString(key);
+					extras.putString(key,value);
+				}
+				localNotification.createAndStartNotification(cordova.getActivity(), extras);
+			} catch (JSONException e) {
+				Log.e(TAG, "execute: Got JSON Exception " + e.getMessage());
+				result = false;
+				callbackContext.error(e.getMessage());
+			}
 		} else {
 			result = false;
 			Log.e(TAG, "Invalid action : " + action);
