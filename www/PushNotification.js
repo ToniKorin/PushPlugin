@@ -69,12 +69,18 @@ PushNotification.prototype.localNotification = function(messageInfo) {
     cordova.exec(null, null, "PushPlugin", "localNotification", [messageInfo]);
 };
 
-// Call this to set/reset/unset auto increment of android message number
+// Call this to set/reset/unset auto increment of Android message number
 PushNotification.prototype.setAutoMessageCount = function(count) {
     cordova.exec(null, null, "PushPlugin", "setAutoMessageCount", [count]);
 };
 
+// Call this to clear notification from Android notification center
+PushNotification.prototype.cancelNotification = function(id) {
+    cordova.exec(null, null, "PushPlugin", "cancelNotification", [id]);
+};
+
 // https://github.com/phonegap-build/PushPlugin/issues/288#issuecomment-72121589
+// Call this after IOS background task is done (max 30 sec)
 PushNotification.prototype.backgroundDone = function(successCallback, errorCallback) {
     if (errorCallback == null) { errorCallback = function() {}}
 

@@ -225,8 +225,13 @@
         NSLog(@"Msg: %@", jsonStr);
         
         NSString * jsCallBack = [NSString stringWithFormat:@"%@(%@);", self.callback, jsonStr];
-        [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
-        
+        if ([self.webView respondsToSelector:@selector(stringByEvaluatingJavaScriptFromString:)]) {
+            // Cordova-iOS pre-4
+            [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsCallBack waitUntilDone:NO];
+        } else {
+            // Cordova-iOS 4+
+            [self.webView performSelectorOnMainThread:@selector(evaluateJavaScript:completionHandler:) withObject:jsCallBack waitUntilDone:NO];
+        }
         //get javascript function to fire in background mode
         CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:jsonStr];
         [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];

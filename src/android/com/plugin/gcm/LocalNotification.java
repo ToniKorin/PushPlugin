@@ -16,6 +16,9 @@ import android.util.Log;
 public class LocalNotification {
 
     private static final String TAG = "LocalNotification";
+    public static final String MESSAGE_COUNT = "messageCount";
+    public static final String AUTO_ID = "autoId";
+
     public void createAndStartNotification(Context context, Bundle extras)
     {
         NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -32,13 +35,12 @@ public class LocalNotification {
         if (extras.getString("defaults") != null) {
             try {
                 defaults = Integer.parseInt(extras.getString("defaults"));
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) { Log.e(TAG, "Error parsing defaults: " + e.getMessage());}
         }
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setDefaults(defaults)
-                        .setOnlyAlertOnce(false)
                         .setSmallIcon(context.getApplicationInfo().icon)
                         .setWhen(System.currentTimeMillis())
                         .setContentTitle(extras.getString("title"))
@@ -50,7 +52,17 @@ public class LocalNotification {
         if (message != null) {
             mBuilder.setContentText(message);
         } else {
-            mBuilder.setContentText("<missing message content>");
+            mBuilder.setContentText("");
+        }
+
+        String subText = extras.getString("subText");
+        if (subText != null) {
+            mBuilder.setSubText(subText);
+        }
+
+        String bigText = extras.getString("bigText");
+        if (bigText != null) { // this overrides contextText and subText
+            mBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(bigText));
         }
 
         if (extras.getString("progress") != null){
@@ -65,7 +77,6 @@ public class LocalNotification {
         }
 
         int notId = 0;
-
         try {
             notId = Integer.parseInt(extras.getString("notId"));
         }
@@ -73,20 +84,46 @@ public class LocalNotification {
             Log.e(TAG, "Number format exception - Error parsing Notification ID: " + e.getMessage());
         }
         catch(Exception e) {
-            Log.e(TAG, "Number format exception - Error parsing Notification ID" + e.getMessage());
+            Log.e(TAG, "Error parsing Notification ID" + e.getMessage());
         }
+        if(notId==-1){
+            notId = getOptAutoId(context);
+        }
+        Log.v(TAG, "createAndStartNotification, ID:" + notId);
 
-        mNotificationManager.notify((String) appName, notId, mBuilder.build());
+        mNotificationManager.notify(appName, notId, mBuilder.build());
+    }
+
+    public void cancelNotification(Context context, int id){
+        Log.v(TAG, "cancelNotification, ID:" + id);
+        NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if(id < 0){
+            mNotificationManager.cancelAll();
+        }
+        else {
+            mNotificationManager.cancel(getAppName(context),id);
+        }
+    }
+
+    public void setAutoMessageCount(Context context, int count){
+        SharedPreferences sp = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        if ( count >= 0 ){
+            editor.putInt(MESSAGE_COUNT, count);
+        } else {
+            editor.remove(MESSAGE_COUNT);
+        }
+        editor.commit();
     }
 
     private void setOptAutoMessageCount(Context context, NotificationCompat.Builder mBuilder) {
-        SharedPreferences sp = context.getSharedPreferences(PushPlugin.TAG, Context.MODE_PRIVATE);
-        int count = sp.getInt(PushPlugin.MESSAGE_COUNT, -1);
+        SharedPreferences sp = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        int count = sp.getInt(MESSAGE_COUNT, -1);
         if (count >= 0){
             count += 1;
             mBuilder.setNumber(count);
             SharedPreferences.Editor editor = sp.edit();
-            editor.putInt(PushPlugin.MESSAGE_COUNT, count);
+            editor.putInt(MESSAGE_COUNT, count);
             editor.commit();
         }
     }
@@ -98,6 +135,21 @@ public class LocalNotification {
                         .getPackageManager()
                         .getApplicationLabel(context.getApplicationInfo());
         return (String)appName;
+    }
+
+    private int getOptAutoId(Context context) {
+        SharedPreferences sp = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
+        int id = sp.getInt(AUTO_ID, -1);
+        if (id<100){ // start autoId from 101
+            id = 100;
+        }
+        if (id >= 0){
+            id += 1;
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putInt(AUTO_ID, id);
+            editor.commit();
+        }
+        return id;
     }
 
 }

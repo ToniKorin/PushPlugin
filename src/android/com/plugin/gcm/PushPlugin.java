@@ -1,8 +1,6 @@
 package com.plugin.gcm;
 
-import android.app.NotificationManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import com.google.android.gcm.GCMRegistrar;
@@ -27,8 +25,7 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String UNREGISTER = "unregister";
 	public static final String SET_AUTO_MESSAGE_COUNT = "setAutoMessageCount";
 	public static final String LOCAL_NOTIFICATION = "localNotification";
-	public static final String MESSAGE_COUNT = "messageCount";
-	public static final String EXIT = "exit";
+	public static final String CANCEL_NOTIFICATION = "cancelNotification";
 	private static final LocalNotification localNotification = new LocalNotification();
 
 	private static CordovaWebView gWebView;
@@ -56,17 +53,13 @@ public class PushPlugin extends CordovaPlugin {
 		Log.v(TAG, "execute: action=" + action);
 
 		if (REGISTER.equals(action)) {
-
 			Log.v(TAG, "execute: data=" + data.toString());
 			try {
 				JSONObject jo = data.getJSONObject(0);
-
 				gWebView = this.webView;
 				Log.v(TAG, "execute: jo=" + jo.toString());
-
 				gECB = (String) jo.get("ecb");
 				gSenderID = (String) jo.get("senderID");
-
 				Log.v(TAG, "execute: ECB=" + gECB + " senderID=" + gSenderID);
 
 				// Configuration options for background processing
@@ -84,7 +77,6 @@ public class PushPlugin extends CordovaPlugin {
 				result = false;
 				callbackContext.error(e.getMessage());
 			}
-
 			if ( gCachedExtras != null) {
 				Log.v(TAG, "sending cached extras");
 				sendExtras(gCachedExtras);
@@ -92,23 +84,14 @@ public class PushPlugin extends CordovaPlugin {
 			}
 
 		} else if (UNREGISTER.equals(action)) {
-
 			GCMRegistrar.unregister(getApplicationContext());
-
 			Log.v(TAG, "UNREGISTER");
 			result = true;
 			callbackContext.success();
 		} else if (SET_AUTO_MESSAGE_COUNT.equals(action)) {
 			Log.v(TAG, "setAutoMessageCount");
-			int count = data.optInt(0,0);
-			SharedPreferences sp = getApplicationContext().getSharedPreferences(TAG, Context.MODE_PRIVATE);
-			SharedPreferences.Editor editor = sp.edit();
-			if ( count >= 0 ){
-				editor.putInt(MESSAGE_COUNT, count);
-			} else {
-				editor.remove(MESSAGE_COUNT);
-			}
-			editor.commit();
+			int count = data.optInt(0, 0);
+			localNotification.setAutoMessageCount(cordova.getActivity(), count);
 		} else if (LOCAL_NOTIFICATION.equals(action)) {
 			Log.v(TAG, "localNotification");
 			try {
@@ -125,6 +108,10 @@ public class PushPlugin extends CordovaPlugin {
 				result = false;
 				callbackContext.error(e.getMessage());
 			}
+		} else if (CANCEL_NOTIFICATION.equals(action)) {
+			Log.v(TAG, "cancelNotification");
+			int id = data.optInt(0,0);
+			localNotification.cancelNotification(cordova.getActivity(), id);
 		} else {
 			result = false;
 			Log.e(TAG, "Invalid action : " + action);
@@ -172,8 +159,7 @@ public class PushPlugin extends CordovaPlugin {
 	public void onPause(boolean multitasking) {
 		super.onPause(multitasking);
 		gForeground = false;
-		final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-		notificationManager.cancelAll();
+		localNotification.cancelNotification(cordova.getActivity(),0); // cancel automatically only notifications with id 0
 	}
 
 	@Override
@@ -223,7 +209,8 @@ public class PushPlugin extends CordovaPlugin {
 				else
 				{
 					// Maintain backwards compatibility
-					if (key.equals("message") || key.equals("msgcnt") || key.equals("soundname"))
+					if (key.equals("message") || key.equals("msgcnt") || key.equals("soundname") ||
+							key.equals("data") || key.equals("time"))
 					{
 						json.put(key, value);
 					}
