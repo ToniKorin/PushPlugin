@@ -1,4 +1,8 @@
 ## ChangeLog
+#### Version 2.1.4 (24.5.2016)
+- Android local notification support
+- iOS fix for Cordova 6.x compatibility 
+
 #### Version 2.0.0 (6.10.2015)
 - Moved plugin to npm
 
