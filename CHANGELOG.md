@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.1.5 (11.12.2016)
+- Xcode8 and ios10 compatibility fix for Missing Push Notification Entitlement problem, requires CLI-6.4.0
+
 #### Version 2.1.4 (24.5.2016)
 - Android local notification support
 - iOS fix for Cordova 6.x compatibility 
