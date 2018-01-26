@@ -37,16 +37,20 @@ public class LocalNotification {
                 defaults = Integer.parseInt(extras.getString("defaults"));
             } catch (NumberFormatException e) { Log.e(TAG, "Error parsing defaults: " + e.getMessage());}
         }
-
+        String title = extras.getString("title", "");
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setDefaults(defaults)
                         .setSmallIcon(context.getApplicationInfo().icon)
                         .setWhen(System.currentTimeMillis())
-                        .setContentTitle(extras.getString("title"))
-                        .setTicker(extras.getString("title"))
+                        .setContentTitle(title)
+                        .setTicker(title)
                         .setContentIntent(contentIntent)
                         .setAutoCancel(true);
+
+        if (android.os.Build.VERSION.SDK_INT >= 17) { // Android 7 and later, time stamps is not visible...
+            mBuilder.setShowWhen(true);
+        }
 
         String message = extras.getString("message");
         if (message != null) {
@@ -73,7 +77,7 @@ public class LocalNotification {
         if (msgcnt != null) {
             mBuilder.setNumber(Integer.parseInt(msgcnt));
         } else {
-            setOptAutoMessageCount(context, mBuilder);
+            setOptAutoMessageCount(context, mBuilder, title);
         }
 
         int notId = 0;
@@ -116,7 +120,7 @@ public class LocalNotification {
         editor.commit();
     }
 
-    private void setOptAutoMessageCount(Context context, NotificationCompat.Builder mBuilder) {
+    private void setOptAutoMessageCount(Context context, NotificationCompat.Builder mBuilder, String title) {
         SharedPreferences sp = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
         int count = sp.getInt(MESSAGE_COUNT, -1);
         if (count >= 0){
@@ -125,6 +129,9 @@ public class LocalNotification {
             SharedPreferences.Editor editor = sp.edit();
             editor.putInt(MESSAGE_COUNT, count);
             editor.commit();
+            if (android.os.Build.VERSION.SDK_INT > 23) { // Android 7 and later, number field is not visible...
+                mBuilder.setContentTitle(title + " (" + count + ")");
+            }
         }
     }
 
