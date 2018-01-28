@@ -1,6 +1,12 @@
 ## ChangeLog
+#### Version 2.1.8 (27.1.2018)
+- Number field visibility fix for android 7 and later
+
+#### Version 2.1.7 (26.1.2018)
+- Time visibility fix for android 7 and later
+
 #### Version 2.1.6 (27.6.2017)
-- Number field visibility fix for android 7 and later 
+- Number field visibility fix for android 7 and later
 
 #### Version 2.1.5 (11.12.2016)
 - Xcode8 and ios10 compatibility fix for Missing Push Notification Entitlement problem, requires CLI-6.4.0
