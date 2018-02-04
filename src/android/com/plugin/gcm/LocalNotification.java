@@ -75,9 +75,10 @@ public class LocalNotification {
 
         String msgcnt = extras.getString("msgcnt");
         if (msgcnt != null) {
-            mBuilder.setNumber(Integer.parseInt(msgcnt));
-            if (android.os.Build.VERSION.SDK_INT > 23) { // Android 7 and later, number field is not visible...
-                mBuilder.setContentTitle(title + " (" + msgcnt + ")");
+            int number = Integer.parseInt(msgcnt);
+            mBuilder.setNumber(number);
+            if (android.os.Build.VERSION.SDK_INT > 23 && number > 0) { // Android 7 and later, number field is not visible...
+                mBuilder.setContentTitle(title + " (" + number + ")");
             }
         } else {
             setOptAutoMessageCount(context, mBuilder, title);

@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.1.11 (4.2.2018)
+- Number field visibility fix for android 7 and later
+
 #### Version 2.1.8 (27.1.2018)
 - Number field visibility fix for android 7 and later
 
