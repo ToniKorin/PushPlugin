@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.1.12 (23.4.2018)
+- Added basic support for android 8 and its message channels 
+
 #### Version 2.1.11 (4.2.2018)
 - Number field visibility fix for android 7 and later
 

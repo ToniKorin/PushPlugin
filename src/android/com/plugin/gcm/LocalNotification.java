@@ -1,6 +1,7 @@
 package com.plugin.gcm;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -18,6 +19,7 @@ public class LocalNotification {
     private static final String TAG = "LocalNotification";
     public static final String MESSAGE_COUNT = "messageCount";
     public static final String AUTO_ID = "autoId";
+    public static final String DEFAULT_CHANNEL_ID = "CH";
 
     public void createAndStartNotification(Context context, Bundle extras)
     {
@@ -50,6 +52,18 @@ public class LocalNotification {
 
         if (android.os.Build.VERSION.SDK_INT >= 17) { // Android 7 and later, time stamps is not visible...
             mBuilder.setShowWhen(true);
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 26) { // Android 8 and later, basic support for notification channels
+            String channelId = extras.getString("channelId",DEFAULT_CHANNEL_ID);
+            NotificationChannel channel = mNotificationManager.getNotificationChannel(channelId);
+            if (channel == null) { /* Create */
+                String channelName =  extras.getString("channelName",appName);
+                channel = new NotificationChannel(channelId,
+                        channelName,
+                        NotificationManager.IMPORTANCE_DEFAULT);
+                mNotificationManager.createNotificationChannel(channel);
+            }
+            mBuilder.setChannelId(channelId);
         }
 
         String message = extras.getString("message");

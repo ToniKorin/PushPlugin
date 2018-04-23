@@ -4,7 +4,7 @@
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     id="cordova-plugin-background-push"
-    version="2.1.11">
+    version="2.1.12">
 
     <name>PushPlugin</name>
     <author>Toni Korin</author>
@@ -33,6 +33,9 @@
     <!-- android -->
     <platform name="android">
 
+    <preference name="ANDROID_SUPPORT_V13_VERSION" default="27.+"/>
+    <framework src="com.android.support:support-v13:$ANDROID_SUPPORT_V13_VERSION"/>
+    
     <config-file target="res/xml/config.xml" parent="/*">
         <feature name="PushPlugin" >
             <param name="android-package" value="com.plugin.gcm.PushPlugin"/>
@@ -67,7 +70,6 @@
     <source-file src="src/android/com/plugin/gcm/LocalNotification.java" target-dir="src/com/plugin/gcm/" />
     <source-file src="src/android/com/plugin/gcm/PushHandlerActivity.java" target-dir="src/com/plugin/gcm/" />
     <source-file src="src/android/com/plugin/gcm/PushPlugin.java" target-dir="src/com/plugin/gcm/" />
-    <source-file src="src/android/com/plugin/android-support-v13.jar" target-dir="libs/" />
 
     </platform>
 
