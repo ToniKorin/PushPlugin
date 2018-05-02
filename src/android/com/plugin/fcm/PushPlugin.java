@@ -1,9 +1,12 @@
-package com.plugin.gcm;
+package com.plugin.fcm;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import com.google.android.gcm.GCMRegistrar;
+
+import com.google.firebase.iid.FirebaseInstanceId;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -12,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -26,6 +30,8 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String SET_AUTO_MESSAGE_COUNT = "setAutoMessageCount";
 	public static final String LOCAL_NOTIFICATION = "localNotification";
 	public static final String CANCEL_NOTIFICATION = "cancelNotification";
+	public static final String PREFS_NAME = "PushPlugin";
+	public static final String TOKEN_UPDATE_SERVICE_CLASS = "tokenUpdateServiceClass";
 	private static final LocalNotification localNotification = new LocalNotification();
 
 	private static CordovaWebView gWebView;
@@ -60,6 +66,13 @@ public class PushPlugin extends CordovaPlugin {
 				Log.v(TAG, "execute: jo=" + jo.toString());
 				gECB = (String) jo.get("ecb");
 				gSenderID = (String) jo.get("senderID");
+				String tokenUpdateServiceClass = jo.getString(PushPlugin.TOKEN_UPDATE_SERVICE_CLASS);
+				if (tokenUpdateServiceClass!=null) {
+					SharedPreferences sp = getApplicationContext().getSharedPreferences(PushPlugin.PREFS_NAME, Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = sp.edit();
+					editor.putString(PushPlugin.TOKEN_UPDATE_SERVICE_CLASS, tokenUpdateServiceClass);
+					editor.commit();
+				}
 				Log.v(TAG, "execute: ECB=" + gECB + " senderID=" + gSenderID);
 
 				// Configuration options for background processing
@@ -69,11 +82,15 @@ public class PushPlugin extends CordovaPlugin {
 				gStartServiceAlwaysInBackground = jo.optBoolean("startServiceAlwaysInBackground",false);
 				gTapNotificationToStartApp = jo.optBoolean("tapNotificationToStartApp",false);
 
-				GCMRegistrar.register(getApplicationContext(), gSenderID);
+				String token = FirebaseInstanceId.getInstance().getToken();
+				if (token == null) {
+					token = FirebaseInstanceId.getInstance().getToken(gSenderID, "FCM");
+				}
+				updateInstanceId(token);
 				result = true;
 				callbackContext.success();
-			} catch (JSONException e) {
-				Log.e(TAG, "execute: Got JSON Exception " + e.getMessage());
+			} catch (Exception e) {
+				Log.e(TAG, "execute: Got Exception " + e.getMessage());
 				result = false;
 				callbackContext.error(e.getMessage());
 			}
@@ -84,10 +101,15 @@ public class PushPlugin extends CordovaPlugin {
 			}
 
 		} else if (UNREGISTER.equals(action)) {
-			GCMRegistrar.unregister(getApplicationContext());
-			Log.v(TAG, "UNREGISTER");
-			result = true;
-			callbackContext.success();
+			try {
+				FirebaseInstanceId.getInstance().deleteInstanceId();
+				Log.v(TAG, "UNREGISTER");
+				result = true;
+				callbackContext.success();
+			} catch (IOException e) {
+				Log.e(TAG, "execute: Got Exception " + e.getMessage());
+				callbackContext.error(e.getMessage());
+			}
 		} else if (SET_AUTO_MESSAGE_COUNT.equals(action)) {
 			Log.v(TAG, "setAutoMessageCount");
 			int count = data.optInt(0, 0);
@@ -261,6 +283,20 @@ public class PushPlugin extends CordovaPlugin {
 		return null;
 	}
 
+	public static void updateInstanceId(String token) {
+		JSONObject json;
+		try {
+			json = new JSONObject().put("event", "registered");
+			json.put("regid", token);
+			// Send this JSON data to the JavaScript application above EVENT should be set to the msg type
+			// In this case this is the registration ID
+			PushPlugin.sendJavascript(json);
+		}catch( JSONException e)
+		{
+			Log.e(TAG, "Refreshed token; exception:" + e.getMessage());
+		}
+	}
+
 	public static boolean isInForeground(){ return gForeground;}
 
 	public static boolean isActive() {return gWebView != null;}
@@ -270,4 +306,5 @@ public class PushPlugin extends CordovaPlugin {
 	public static boolean startServiceAlwaysInBackground() { return gStartServiceAlwaysInBackground; }
 
 	public static boolean tapNotificationToStartApp() { return gTapNotificationToStartApp; }
+
 }

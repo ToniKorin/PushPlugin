@@ -4,15 +4,15 @@
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     id="cordova-plugin-background-push"
-    version="2.1.12">
+    version="2.2.0">
 
     <name>PushPlugin</name>
     <author>Toni Korin</author>
 
     <description>
     This plugin allows your application to receive push notifications on Android, iOS, WP8 and Windows8 devices.
-    Android uses Google Cloud Messaging (+ experimental background task support).
-    iOS uses Apple APNS Notifications (+ experimental Silent Notification support).
+    Android uses Firebase Messaging (+ background task support).
+    iOS uses Apple APNS Notifications (+ Silent Notification support triggering bg task).
     WP8 uses Microsoft MPNS Notifications.
     Windows8 uses Microsoft WNS Notifications.
     This is a fork of https://github.com/jbeuckm/PushPlugin and then enhanced with Android BG support.
@@ -34,42 +34,44 @@
     <platform name="android">
 
     <preference name="ANDROID_SUPPORT_V13_VERSION" default="27.+"/>
+    <preference name="FCM_VERSION" default="11.8.0"/>
     <framework src="com.android.support:support-v13:$ANDROID_SUPPORT_V13_VERSION"/>
+    <framework src="com.google.firebase:firebase-messaging:$FCM_VERSION"/>
+    <framework src="push.gradle" custom="true" type="gradleReference"/>
+    <dependency id="cordova-support-google-services" version="~1.1.0"/>
     
     <config-file target="res/xml/config.xml" parent="/*">
         <feature name="PushPlugin" >
-            <param name="android-package" value="com.plugin.gcm.PushPlugin"/>
+            <param name="android-package" value="com.plugin.fcm.PushPlugin"/>
         </feature>
     </config-file>
 
     <config-file target="AndroidManifest.xml" parent="/manifest">
+        <uses-permission android:name="android.permission.INTERNET" />
         <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-        <!-- uses-permission android:name="android.permission.GET_ACCOUNTS" not required on devices running Android 4.0.4 or higher /--> 
         <uses-permission android:name="android.permission.WAKE_LOCK" />
         <uses-permission android:name="android.permission.VIBRATE"/>
-        <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-        <permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" android:protectionLevel="signature" />
-        <uses-permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" />
     </config-file>
 
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
-        <activity android:name="com.plugin.gcm.PushHandlerActivity" android:exported="true"/>
-        <receiver android:name="com.plugin.gcm.CordovaGCMBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-                <category android:name="$PACKAGE_NAME" />
-            </intent-filter>
-        </receiver>
-        <service android:name="com.plugin.gcm.GCMIntentService" />
+      <activity android:name="com.plugin.fcm.PushHandlerActivity" android:exported="true" android:permission="${applicationId}.permission.PushHandlerActivity"/>
+      <service android:name="com.plugin.fcm.FCMService">
+        <intent-filter>
+          <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+        </intent-filter>
+      </service>
+      <service android:name="com.plugin.fcm.PushInstanceIDListenerService">
+        <intent-filter>
+          <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+        </intent-filter>
+      </service>
     </config-file>
 
-    <source-file src="src/android/libs/gcm.jar" target-dir="libs/" />
-    <source-file src="src/android/com/plugin/gcm/CordovaGCMBroadcastReceiver.java" target-dir="src/com/plugin/gcm/" />
-    <source-file src="src/android/com/plugin/gcm/GCMIntentService.java" target-dir="src/com/plugin/gcm/" />
-    <source-file src="src/android/com/plugin/gcm/LocalNotification.java" target-dir="src/com/plugin/gcm/" />
-    <source-file src="src/android/com/plugin/gcm/PushHandlerActivity.java" target-dir="src/com/plugin/gcm/" />
-    <source-file src="src/android/com/plugin/gcm/PushPlugin.java" target-dir="src/com/plugin/gcm/" />
+    <source-file src="src/android/com/plugin/fcm/FCMService.java" target-dir="src/com/plugin/fcm/" />
+    <source-file src="src/android/com/plugin/fcm/PushInstanceIDListenerService.java" target-dir="src/com/plugin/fcm/" />
+    <source-file src="src/android/com/plugin/fcm/LocalNotification.java" target-dir="src/com/plugin/fcm/" />
+    <source-file src="src/android/com/plugin/fcm/PushHandlerActivity.java" target-dir="src/com/plugin/fcm/" />
+    <source-file src="src/android/com/plugin/fcm/PushPlugin.java" target-dir="src/com/plugin/fcm/" />
 
     </platform>
 

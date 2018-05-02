@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.2.0 (1.5.2018)
+- Replaced GCM by basic support for Firebase messaging 
+
 #### Version 2.1.12 (23.4.2018)
 - Added basic support for android 8 and its message channels 
 
