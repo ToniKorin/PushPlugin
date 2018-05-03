@@ -66,7 +66,7 @@ public class PushPlugin extends CordovaPlugin {
 				Log.v(TAG, "execute: jo=" + jo.toString());
 				gECB = (String) jo.get("ecb");
 				gSenderID = (String) jo.get("senderID");
-				String tokenUpdateServiceClass = jo.getString(PushPlugin.TOKEN_UPDATE_SERVICE_CLASS);
+				String tokenUpdateServiceClass = jo.optString(PushPlugin.TOKEN_UPDATE_SERVICE_CLASS);
 				if (tokenUpdateServiceClass!=null) {
 					SharedPreferences sp = getApplicationContext().getSharedPreferences(PushPlugin.PREFS_NAME, Context.MODE_PRIVATE);
 					SharedPreferences.Editor editor = sp.edit();

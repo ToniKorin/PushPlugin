@@ -1,5 +1,5 @@
 ## ChangeLog
-#### Version 2.2.0 (1.5.2018)
+#### Version 2.2.1 (3.5.2018)
 - Replaced GCM by basic support for Firebase messaging 
 
 #### Version 2.1.12 (23.4.2018)
