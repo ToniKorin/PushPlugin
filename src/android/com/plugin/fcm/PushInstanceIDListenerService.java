@@ -30,7 +30,11 @@ public class PushInstanceIDListenerService extends FirebaseInstanceIdService {
                 Intent serviceIntent = new Intent();
                 serviceIntent.putExtra("regid", refreshedToken);
                 serviceIntent.setClassName(this, tokenUpdateService);
-                startService(serviceIntent);
+                if (android.os.Build.VERSION.SDK_INT >= 26) {
+                    startForegroundService(serviceIntent);
+                } else {
+                    startService(serviceIntent);
+                }
             }
         }
     }
