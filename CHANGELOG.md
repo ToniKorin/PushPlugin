@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.2.2 (10.7.2018)
+- Fixed IllegalStateException in PushInstanceIDListenerService for Android 8 and later 
+
 #### Version 2.2.1 (3.5.2018)
 - Replaced GCM by basic support for Firebase messaging 
 
