@@ -16,7 +16,7 @@ public class PushInstanceIDListenerService extends FirebaseInstanceIdService {
         // Get updated InstanceID token.
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
         Log.d(TAG, "Refreshed token: " + refreshedToken);
-        if (refreshedToken!=null) {
+        if (refreshedToken!=null && !refreshedToken.isEmpty()) {
             if (PushPlugin.isInForeground()) {
                 PushPlugin.updateInstanceId(refreshedToken);
             } else {

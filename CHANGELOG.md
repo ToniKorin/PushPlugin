@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.2.3 (21.9.2018)
+- Improved token refresh handling
+
 #### Version 2.2.2 (10.7.2018)
 - Fixed IllegalStateException in PushInstanceIDListenerService for Android 8 and later 
 

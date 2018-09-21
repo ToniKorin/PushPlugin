@@ -4,7 +4,7 @@
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     id="cordova-plugin-background-push"
-    version="2.2.2">
+    version="2.2.3">
 
     <name>PushPlugin</name>
     <author>Toni Korin</author>
