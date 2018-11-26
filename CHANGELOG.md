@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.3.0 (26.11.2018)
+- Added essential diagnostic services
+
 #### Version 2.2.3 (21.9.2018)
 - Improved token refresh handling
 

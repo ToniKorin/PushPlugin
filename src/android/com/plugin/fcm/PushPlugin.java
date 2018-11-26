@@ -1,8 +1,12 @@
 package com.plugin.fcm;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -11,6 +15,7 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PermissionHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +35,8 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String SET_AUTO_MESSAGE_COUNT = "setAutoMessageCount";
 	public static final String LOCAL_NOTIFICATION = "localNotification";
 	public static final String CANCEL_NOTIFICATION = "cancelNotification";
+	public static final String SWITCH_TO_SETTINGS = "switchToSettings";
+	public static final String GET_LOCATION_SERVICE_STATUS = "getLocationServiceStatus";
 	public static final String PREFS_NAME = "PushPlugin";
 	public static final String TOKEN_UPDATE_SERVICE_CLASS = "tokenUpdateServiceClass";
 	private static final LocalNotification localNotification = new LocalNotification();
@@ -134,6 +141,14 @@ public class PushPlugin extends CordovaPlugin {
 			Log.v(TAG, "cancelNotification");
 			int id = data.optInt(0,0);
 			localNotification.cancelNotification(cordova.getActivity(), id);
+		} else if (SWITCH_TO_SETTINGS.equals(action)) {
+			String mode = data.optString(0,"APP");
+			switchToSettings(mode);
+			callbackContext.success();
+		} else if (GET_LOCATION_SERVICE_STATUS.equals(action)) {
+			result = true;
+			getLocationServiceStatus();
+			callbackContext.success();
 		} else {
 			result = false;
 			Log.e(TAG, "Invalid action : " + action);
@@ -143,6 +158,35 @@ public class PushPlugin extends CordovaPlugin {
 		return result;
 	}
 
+	public void switchToSettings(String mode) {
+		Intent settingsIntent;
+		if ("APP".equalsIgnoreCase(mode)){
+			settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+			Uri uri = Uri.fromParts("package", cordova.getActivity().getPackageName(), null);
+			settingsIntent.setData(uri);
+		} else { // Location service settings
+			settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+		}
+		cordova.getActivity().startActivity(settingsIntent);
+	}
+
+	public void getLocationServiceStatus() {
+		try {// 3=HIGH_ACCURACY, 2=SENSORS_ONLY, 1=BATTERY_SAVING, 0=OFF
+			int locationMode = Settings.Secure.getInt(this.cordova.getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE);
+			boolean authorized = false;
+			if(PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
+					PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)){
+				authorized = true;
+			}
+			JSONObject json = new JSONObject()
+					.put("mode", locationMode)
+					.put("authorized", authorized);
+			PushPlugin.sendJavascript(json);
+		}catch( Exception e) {
+			Log.e(TAG, "getLocationServiceStatus; exception:" + e.getMessage());
+		}
+
+	}
 	/*
 	 * Sends a json object to the client as parameter to a method which is defined in gECB.
 	 */
@@ -284,9 +328,8 @@ public class PushPlugin extends CordovaPlugin {
 	}
 
 	public static void updateInstanceId(String token) {
-		JSONObject json;
 		try {
-			json = new JSONObject().put("event", "registered");
+			JSONObject json = new JSONObject().put("event", "registered");
 			json.put("regid", token);
 			// Send this JSON data to the JavaScript application above EVENT should be set to the msg type
 			// In this case this is the registration ID

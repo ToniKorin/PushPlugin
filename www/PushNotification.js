@@ -93,6 +93,49 @@ PushNotification.prototype.backgroundDone = function(successCallback, errorCallb
 };
 
 //-------------------------------------------------------------------
+// Essential diagnostic services, which affects the plugin
+//
+
+// Open app settings view
+PushNotification.prototype.switchToSettings = function(successCallback,errorCallback,mode) {
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "switchToSettings", [mode]);
+};
+
+// Background refresh status  (iOS only)
+PushNotification.prototype.getBackgroundRefreshStatus = function(successCallback) {
+    cordova.exec(successCallback, null, "PushPlugin", "getBackgroundRefreshStatus", []);
+};
+// Is background refresh enabled (iOS only)
+PushNotification.prototype.isBackgroundRefreshEnabled = function(successCallback) {
+    PushNotification.getBackgroundRefreshStatus(function(status){
+        successCallback(status === "GRANTED");
+    });
+};
+
+// Low power mode status (iOS only)
+PushNotification.prototype.getLowPowerModeStatus = function(successCallback) {
+    cordova.exec(successCallback, null, "PushPlugin", "getLowPowerModeStatus", []);
+};
+// Is normal power mode (iOS only)
+PushNotification.prototype.isNormalPowerMode = function(successCallback) {
+    PushNotification.getLowPowerModeStatus(function(status){
+        successCallback(status === "DISABLED");
+    });
+};
+
+// Location service status
+PushNotification.prototype.getLocationServiceStatus = function(successCallback) {
+    cordova.exec(successCallback, null, "PushPlugin", "getLocationServiceStatus", []);
+};
+// Is location service enabled (iOS only)
+PushNotification.prototype.isLocationServiceEnabled = function(successCallback) {
+    PushNotification.getLocationServiceStatus(function(status){
+        successCallback(status === "GRANTED");
+    });
+};
+
+
+// ------------------------------------------------------------------
 
 if(!window.plugins) {
     window.plugins = {};

@@ -55,4 +55,10 @@
 // https://github.com/phonegap-build/PushPlugin/issues/288#issuecomment-72121589
 - (void)didCompleteBackgroundProcess:(CDVInvokedUrlCommand*)command;
 
+- (void) switchToSettings: (CDVInvokedUrlCommand*)command;
+- (void) getBackgroundRefreshStatus: (CDVInvokedUrlCommand*)command;
+- (void) getLowPowerModeStatus: (CDVInvokedUrlCommand*)command;
+- (void) getLocationServiceStatus: (CDVInvokedUrlCommand*)command;
+
+
 @end

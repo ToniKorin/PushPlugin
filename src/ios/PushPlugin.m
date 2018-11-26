@@ -302,4 +302,94 @@
     }
 }
 
+//
+// Some essential diagnostic services
+//
+
+// Open app iOS settings view
+- (void) switchToSettings: (CDVInvokedUrlCommand*)command
+{
+    self.callbackId = command.callbackId;
+    if (UIApplicationOpenSettingsURLString != nil ){
+        if ([[UIApplication sharedApplication] respondsToSelector:@selector(openURL:options:completionHandler:)]) {
+#if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString: UIApplicationOpenSettingsURLString] options:@{} completionHandler:^(BOOL success) {
+                if (success) {
+                    [self successWithMessage:@"OK"];
+                }else{
+                    [self failWithMessage:@"NOK"];
+                }
+            }];
+#endif
+        }else{
+            [[UIApplication sharedApplication] openURL: [NSURL URLWithString: UIApplicationOpenSettingsURLString]];
+            [self successWithMessage:@"OK"];
+        }
+    }else{
+        [self failWithMessage:@"Not supported below iOS 8"];
+    }
+}
+
+// Background refresh status
+- (void) getBackgroundRefreshStatus: (CDVInvokedUrlCommand*)command
+{
+    self.callbackId = command.callbackId;
+    UIBackgroundRefreshStatus backgroundTaskStatus = [[UIApplication sharedApplication] backgroundRefreshStatus];
+    NSString* status;
+    if (backgroundTaskStatus == UIBackgroundRefreshStatusAvailable) {
+        // Background task execution available for the app, triggered by remote-notification
+        status = @"GRANTED";
+    }else if(backgroundTaskStatus == UIBackgroundRefreshStatusDenied){
+        // The user explicitly disabled background behavior for this app or for the whole system
+        status = @"DENIED";
+    }else if(backgroundTaskStatus == UIBackgroundRefreshStatusRestricted){
+        // Background updates are unavailable and the user cannot enable them again. 
+        // For example, this status can occur when parental controls are in effect for the current user
+        status = @"RESTRICTED";
+    }
+    [self successWithMessage:status];
+}
+
+// Low power mode status
+- (void) getLowPowerModeStatus: (CDVInvokedUrlCommand*)command
+{
+    self.callbackId = command.callbackId;
+    NSString* status;
+    if ([[NSProcessInfo processInfo] isLowPowerModeEnabled]) {
+        // Low Power Mode is enabled. Start reducing activity to conserve energy.
+        // E.g. remote-notification cannot trigger background task anymore
+        status = @"ENABLED";
+    } else {
+        // Low Power Mode is not enabled.
+        status = @"DISABLED";
+    };
+    [self successWithMessage:status];
+}
+
+// Location service status
+- (void) getLocationServiceStatus: (CDVInvokedUrlCommand*)command
+{
+    self.callbackId = command.callbackId;
+    NSString* status;
+    if ([CLLocationManager locationServicesEnabled])
+    {
+        CLAuthorizationStatus authStatus = [CLLocationManager authorizationStatus];;
+        if(authStatus == kCLAuthorizationStatusAuthorizedAlways){
+            // When running in background (or foreground) 
+            status = @"GRANTED";
+        }else if(authStatus == kCLAuthorizationStatusAuthorizedWhenInUse){
+            // Only when running in foreground
+            status = @"ONLY_WHEN_IN_USE";
+        }else if(authStatus == kCLAuthorizationStatusDenied || authStatus == kCLAuthorizationStatusRestricted){
+            status = @"DENIED";
+        }else if(authStatus == kCLAuthorizationStatusNotDetermined){
+            status = @"NOT_DETERMINED";
+        }
+    }else { 
+        status = @"DISABLED";
+    }
+    [self successWithMessage:status];
+}
+
+
 @end
