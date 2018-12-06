@@ -107,7 +107,7 @@ PushNotification.prototype.getBackgroundRefreshStatus = function(successCallback
 };
 // Is background refresh enabled (iOS only)
 PushNotification.prototype.isBackgroundRefreshEnabled = function(successCallback) {
-    PushNotification.getBackgroundRefreshStatus(function(status){
+    this.getBackgroundRefreshStatus(function(status){
         successCallback(status === "GRANTED");
     });
 };
@@ -118,7 +118,7 @@ PushNotification.prototype.getLowPowerModeStatus = function(successCallback) {
 };
 // Is normal power mode (iOS only)
 PushNotification.prototype.isNormalPowerMode = function(successCallback) {
-    PushNotification.getLowPowerModeStatus(function(status){
+    this.getLowPowerModeStatus(function(status){
         successCallback(status === "DISABLED");
     });
 };
@@ -129,7 +129,7 @@ PushNotification.prototype.getLocationServiceStatus = function(successCallback) 
 };
 // Is location service enabled (iOS only)
 PushNotification.prototype.isLocationServiceEnabled = function(successCallback) {
-    PushNotification.getLocationServiceStatus(function(status){
+    this.getLocationServiceStatus(function(status){
         successCallback(status === "GRANTED");
     });
 };

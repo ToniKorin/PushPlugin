@@ -146,9 +146,7 @@ public class PushPlugin extends CordovaPlugin {
 			switchToSettings(mode);
 			callbackContext.success();
 		} else if (GET_LOCATION_SERVICE_STATUS.equals(action)) {
-			result = true;
-			getLocationServiceStatus();
-			callbackContext.success();
+			callbackContext.success(getLocationServiceStatus());
 		} else {
 			result = false;
 			Log.e(TAG, "Invalid action : " + action);
@@ -170,7 +168,7 @@ public class PushPlugin extends CordovaPlugin {
 		cordova.getActivity().startActivity(settingsIntent);
 	}
 
-	public void getLocationServiceStatus() {
+	public JSONObject getLocationServiceStatus() {
 		try {// 3=HIGH_ACCURACY, 2=SENSORS_ONLY, 1=BATTERY_SAVING, 0=OFF
 			int locationMode = Settings.Secure.getInt(this.cordova.getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE);
 			boolean authorized = false;
@@ -178,12 +176,13 @@ public class PushPlugin extends CordovaPlugin {
 					PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)){
 				authorized = true;
 			}
-			JSONObject json = new JSONObject()
+			JSONObject status = new JSONObject()
 					.put("mode", locationMode)
 					.put("authorized", authorized);
-			PushPlugin.sendJavascript(json);
+			return status;
 		}catch( Exception e) {
 			Log.e(TAG, "getLocationServiceStatus; exception:" + e.getMessage());
+			return null;
 		}
 
 	}

@@ -1,4 +1,10 @@
 ## ChangeLog
+#### Version 2.3.4 (5.12.2018)
+- More fixes for diagnostic services
+
+#### Version 2.3.1 (2.12.2018)
+- Fixes for diagnostic services
+
 #### Version 2.3.0 (26.11.2018)
 - Added essential diagnostic services
 

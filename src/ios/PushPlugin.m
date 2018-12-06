@@ -317,7 +317,7 @@
                 if (success) {
                     [self successWithMessage:@"OK"];
                 }else{
-                    [self failWithMessage:@"NOK"];
+                    [self failWithMessage:@"NOK" withError:nil];
                 }
             }];
 #endif
@@ -326,7 +326,7 @@
             [self successWithMessage:@"OK"];
         }
     }else{
-        [self failWithMessage:@"Not supported below iOS 8"];
+        [self failWithMessage:@"Not supported below iOS 8" withError:nil];
     }
 }
 
