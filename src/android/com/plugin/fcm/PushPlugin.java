@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -157,28 +158,47 @@ public class PushPlugin extends CordovaPlugin {
 	}
 
 	public void switchToSettings(String mode) {
-		Intent settingsIntent;
-		if ("APP".equalsIgnoreCase(mode)){
-			settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-			Uri uri = Uri.fromParts("package", cordova.getActivity().getPackageName(), null);
-			settingsIntent.setData(uri);
-		} else { // Location service settings
-			settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+		try{
+            Intent settingsIntent;
+            if ("APP".equalsIgnoreCase(mode)){
+                settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                Uri uri = Uri.fromParts("package", cordova.getActivity().getPackageName(), null);
+                settingsIntent.setData(uri);
+            } else if ("BATTERY".equalsIgnoreCase(mode)){
+                settingsIntent = new Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS);
+            } else { // Location service settings
+                settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            }
+            cordova.getActivity().startActivity(settingsIntent);
+		}catch( Exception e) {
+			Log.e(TAG, "switchToSettings; exception:" + e.getMessage());
 		}
-		cordova.getActivity().startActivity(settingsIntent);
 	}
 
 	public JSONObject getLocationServiceStatus() {
 		try {// 3=HIGH_ACCURACY, 2=SENSORS_ONLY, 1=BATTERY_SAVING, 0=OFF
 			int locationMode = Settings.Secure.getInt(this.cordova.getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE);
 			boolean authorized = false;
+            boolean normalPowerMode = true;
 			if(PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
 					PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)){
 				authorized = true;
 			}
-			JSONObject status = new JSONObject()
+			PowerManager pm = (PowerManager) this.cordova.getActivity().getSystemService(Context.POWER_SERVICE);
+            /* TODO if (android.os.Build.VERSION.SDK_INT >= 28) {
+                if(pm.getLocationPowerSaveMode()!=0) { //LOCATION_MODE_NO_CHANGE
+                    normalPowerMode = false;
+                }
+            } else */
+            if (android.os.Build.VERSION.SDK_INT >= 21){
+                if(pm.isPowerSaveMode()){ //
+                    normalPowerMode = false;
+                }
+            }
+            JSONObject status = new JSONObject()
 					.put("mode", locationMode)
-					.put("authorized", authorized);
+					.put("authorized", authorized)
+                    .put("normalPowerMode", normalPowerMode);
 			return status;
 		}catch( Exception e) {
 			Log.e(TAG, "getLocationServiceStatus; exception:" + e.getMessage());

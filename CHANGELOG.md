@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.3.6 (20.7.2019)
+- Added diagnostic for Android Battery Saver
+
 #### Version 2.3.4 (5.12.2018)
 - More fixes for diagnostic services
 

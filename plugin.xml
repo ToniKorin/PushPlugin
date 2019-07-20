@@ -4,7 +4,7 @@
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     id="cordova-plugin-background-push"
-    version="2.3.4">
+    version="2.3.6">
 
     <name>PushPlugin</name>
     <author>Toni Korin</author>
@@ -36,9 +36,10 @@
     <preference name="ANDROID_SUPPORT_V13_VERSION" default="27.+"/>
     <preference name="FCM_VERSION" default="11.8.0"/>
     <framework src="com.android.support:support-v13:$ANDROID_SUPPORT_V13_VERSION"/>
+    <framework src="com.google.firebase:firebase-core:$FCM_VERSION"/>
     <framework src="com.google.firebase:firebase-messaging:$FCM_VERSION"/>
     <framework src="push.gradle" custom="true" type="gradleReference"/>
-    <dependency id="cordova-support-google-services" version="~1.1.0"/>
+    <dependency id="cordova-support-google-services" version="1.2.1"/>
     
     <config-file target="res/xml/config.xml" parent="/*">
         <feature name="PushPlugin" >
