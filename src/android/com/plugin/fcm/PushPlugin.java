@@ -1,10 +1,12 @@
 package com.plugin.fcm;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -158,20 +160,32 @@ public class PushPlugin extends CordovaPlugin {
 	}
 
 	public void switchToSettings(String mode) {
-		try{
-            Intent settingsIntent;
+		Intent settingsIntent;
+	    try{
             if ("APP".equalsIgnoreCase(mode)){
                 settingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                 Uri uri = Uri.fromParts("package", cordova.getActivity().getPackageName(), null);
                 settingsIntent.setData(uri);
             } else if ("BATTERY".equalsIgnoreCase(mode)){
-                settingsIntent = new Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS);
-            } else { // Location service settings
+                if (Build.MANUFACTURER.equalsIgnoreCase("samsung")) {
+                    settingsIntent = new Intent();
+                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
+                        settingsIntent.setComponent(new ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"));
+                    } else {
+                        settingsIntent.setComponent(new ComponentName("com.samsung.android.sm", "com.samsung.android.sm.ui.battery.BatteryActivity"));
+                    }
+                } else {
+                    settingsIntent = new Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS);
+                }
+             } else { // Location service settings
                 settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             }
             cordova.getActivity().startActivity(settingsIntent);
 		}catch( Exception e) {
 			Log.e(TAG, "switchToSettings; exception:" + e.getMessage());
+			// Fallback to global settings
+			settingsIntent = new Intent(Settings.ACTION_SETTINGS);
+			cordova.getActivity().startActivity(settingsIntent);
 		}
 	}
 
