@@ -61,5 +61,6 @@
 - (void) getLowPowerModeStatus: (CDVInvokedUrlCommand*)command;
 - (void) getLocationServiceStatus: (CDVInvokedUrlCommand*)command;
 
++ (NSString *) stringFromDeviceToken:(NSData *)deviceToken;
 
 @end

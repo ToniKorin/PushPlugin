@@ -146,9 +146,7 @@
 - (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     
     NSMutableDictionary *results = [NSMutableDictionary dictionary];
-    NSString *token = [[[[deviceToken description] stringByReplacingOccurrencesOfString:@"<"withString:@""]
-                        stringByReplacingOccurrencesOfString:@">" withString:@""]
-                       stringByReplacingOccurrencesOfString: @" " withString: @""];
+    NSString *token = [PushPlugin stringFromDeviceToken:deviceToken];
     [results setValue:token forKey:@"deviceToken"];
     
 #if !TARGET_IPHONE_SIMULATOR
@@ -390,6 +388,27 @@
     }
     [self successWithMessage:status];
 }
+
++ (NSString *)stringFromDeviceToken:(NSData *)deviceToken {
+#if defined(__IPHONE_13_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_13_0
+    NSUInteger length = deviceToken.length;
+    if (length == 0) {
+        return nil;
+    }
+    const unsigned char *buffer = (const unsigned char *)deviceToken.bytes;
+    NSMutableString *hexString  = [NSMutableString stringWithCapacity:(length * 2)];
+    for (int i = 0; i < length; ++i) {
+        [hexString appendFormat:@"%02x", buffer[i]];
+    }
+    return [hexString copy];
+#else
+    NSString *token = [[[[deviceToken description] stringByReplacingOccurrencesOfString:@"<"withString:@""]
+                    stringByReplacingOccurrencesOfString:@">" withString:@""]
+                   stringByReplacingOccurrencesOfString: @" " withString: @""];
+    return token;
+#endif
+}
+
 
 
 @end
