@@ -1,5 +1,5 @@
 {
-  "version": "2.3.10",
+  "version": "2.3.11",
   "name": "cordova-plugin-background-push",
   "cordova_name": "PushPlugin",
   "description": "\r\n\t\tThis plugin allows your application to receive push notifications on Android, iOS, WP8 and Windows8 devices.\r\n    Android uses Google Cloud Messaging (+ experimental background task support).\r\n    iOS uses Apple APNS Notifications (+ experimental Silent Notification support).\r\n    WP8 uses Microsoft MPNS Notifications.\r\n    Windows8 uses Microsoft WNS Notifications.\r\n    This is a fork of https://github.com/jbeuckm/PushPlugin and then enhanced with Android BG support.\r\n\t",

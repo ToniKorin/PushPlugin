@@ -196,14 +196,16 @@ public class PushPlugin extends CordovaPlugin {
             boolean normalPowerMode = true;
 			if(PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
 					PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)){
-				authorized = true;
+				if (android.os.Build.VERSION.SDK_INT < 29 || PermissionHelper.hasPermission(this, "android.permission.ACCESS_BACKGROUND_LOCATION")) {
+					authorized = true;
+				}
 			}
 			PowerManager pm = (PowerManager) this.cordova.getActivity().getSystemService(Context.POWER_SERVICE);
-            /* TODO if (android.os.Build.VERSION.SDK_INT >= 28) {
+            if (android.os.Build.VERSION.SDK_INT >= 28) {
                 if(pm.getLocationPowerSaveMode()!=0) { //LOCATION_MODE_NO_CHANGE
                     normalPowerMode = false;
                 }
-            } else */
+            }
             if (android.os.Build.VERSION.SDK_INT >= 21){
                 if(pm.isPowerSaveMode()){ //
                     normalPowerMode = false;

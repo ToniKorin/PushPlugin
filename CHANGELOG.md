@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.3.11 (23.7.2020)
+- Location and power save mode status check update for Android API level 28 and 29
+
 #### Version 2.3.10 (15.7.2020)
 - iOS Push token fixed for 13 SDK
 
