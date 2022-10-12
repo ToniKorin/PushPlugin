@@ -193,7 +193,9 @@ public class PushPlugin extends CordovaPlugin {
 		try {// 3=HIGH_ACCURACY, 2=SENSORS_ONLY, 1=BATTERY_SAVING, 0=OFF
 			int locationMode = Settings.Secure.getInt(this.cordova.getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE);
 			boolean authorized = false;
-            boolean normalPowerMode = true;
+			boolean normalPowerMode = true;
+			boolean ignoreBatteryOptimization = true;
+			boolean lowPowerStandbyEnabled = false;
 			if(PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
 					PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)){
 				if (android.os.Build.VERSION.SDK_INT < 29 || PermissionHelper.hasPermission(this, "android.permission.ACCESS_BACKGROUND_LOCATION")) {
@@ -201,20 +203,28 @@ public class PushPlugin extends CordovaPlugin {
 				}
 			}
 			PowerManager pm = (PowerManager) this.cordova.getActivity().getSystemService(Context.POWER_SERVICE);
-            if (android.os.Build.VERSION.SDK_INT >= 28) {
-                if(pm.getLocationPowerSaveMode()!=0) { //LOCATION_MODE_NO_CHANGE
-                    normalPowerMode = false;
-                }
-            }
-            if (android.os.Build.VERSION.SDK_INT >= 21){
-                if(pm.isPowerSaveMode()){ //
-                    normalPowerMode = false;
-                }
-            }
-            JSONObject status = new JSONObject()
+			if (android.os.Build.VERSION.SDK_INT >= 28) {
+				if(pm.getLocationPowerSaveMode()!=0) { //LOCATION_MODE_NO_CHANGE
+					normalPowerMode = false;
+				}
+			}
+			if (android.os.Build.VERSION.SDK_INT >= 21){
+				if(pm.isPowerSaveMode()){ //
+					normalPowerMode = false;
+				}
+			}
+			if (android.os.Build.VERSION.SDK_INT >= 23) {
+				ignoreBatteryOptimization = pm.isIgnoringBatteryOptimizations(getApplicationContext().getPackageName());
+			}
+			if (android.os.Build.VERSION.SDK_INT >= 33) {
+				lowPowerStandbyEnabled = pm.isLowPowerStandbyEnabled();
+			}
+			JSONObject status = new JSONObject()
+					.put("ignoreBatteryOptimization", ignoreBatteryOptimization)
+					.put("lowPowerStandbyEnabled", lowPowerStandbyEnabled)
 					.put("mode", locationMode)
 					.put("authorized", authorized)
-                    .put("normalPowerMode", normalPowerMode);
+					.put("normalPowerMode", normalPowerMode);
 			return status;
 		}catch( Exception e) {
 			Log.e(TAG, "getLocationServiceStatus; exception:" + e.getMessage());

@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.3.12 (12.10.2022)
+- Android power save mode statuses (ignoreBatteryOptimization and lowPowerStandbyEnabled)
+
 #### Version 2.3.11 (23.7.2020)
 - Location and power save mode status check update for Android API level 28 and 29
 
