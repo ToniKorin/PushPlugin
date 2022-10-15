@@ -195,7 +195,7 @@ public class PushPlugin extends CordovaPlugin {
 			boolean authorized = false;
 			boolean normalPowerMode = true;
 			boolean ignoreBatteryOptimization = true;
-			boolean lowPowerStandbyEnabled = false;
+			//boolean lowPowerStandbyEnabled = false;
 			if(PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
 					PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)){
 				if (android.os.Build.VERSION.SDK_INT < 29 || PermissionHelper.hasPermission(this, "android.permission.ACCESS_BACKGROUND_LOCATION")) {
@@ -216,12 +216,14 @@ public class PushPlugin extends CordovaPlugin {
 			if (android.os.Build.VERSION.SDK_INT >= 23) {
 				ignoreBatteryOptimization = pm.isIgnoringBatteryOptimizations(getApplicationContext().getPackageName());
 			}
+			/* TODO
 			if (android.os.Build.VERSION.SDK_INT >= 33) {
 				lowPowerStandbyEnabled = pm.isLowPowerStandbyEnabled();
 			}
+			//.put("lowPowerStandbyEnabled", lowPowerStandbyEnabled)
+			*/
 			JSONObject status = new JSONObject()
 					.put("ignoreBatteryOptimization", ignoreBatteryOptimization)
-					.put("lowPowerStandbyEnabled", lowPowerStandbyEnabled)
 					.put("mode", locationMode)
 					.put("authorized", authorized)
 					.put("normalPowerMode", normalPowerMode);

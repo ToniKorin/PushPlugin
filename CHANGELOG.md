@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.3.13 (15.10.2022)
+- Removed Android power save mode status lowPowerStandbyEnabled for now
+
 #### Version 2.3.12 (12.10.2022)
 - Android power save mode statuses (ignoreBatteryOptimization and lowPowerStandbyEnabled)
 
