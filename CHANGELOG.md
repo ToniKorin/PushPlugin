@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 2.4.2 (2.8.2023)
+- Android 12 (version 31) compatibility
+
 #### Version 2.3.13 (15.10.2022)
 - Removed Android power save mode status lowPowerStandbyEnabled for now
 
