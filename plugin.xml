@@ -4,7 +4,7 @@
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     id="cordova-plugin-background-push"
-    version="2.4.2">
+    version="3.0.0">
 
     <name>PushPlugin</name>
     <author>Toni Korin</author>
@@ -27,7 +27,9 @@
     </js-module>
 
     <engines>
-    <engine name="cordova" version=">=3.0.0" />
+        <engine name="cordova" version=">=10.0.0"/>
+        <engine name="cordova-android" version=">=9.0.0"/>
+        <engine name="cordova-ios" version=">=6.0.0"/>
     </engines>
 
     <!-- android -->
@@ -39,8 +41,12 @@
     <framework src="androidx.core:core:1.10.1"/>
     <framework src="com.google.firebase:firebase-core:$FCM_VERSION"/>
     <framework src="com.google.firebase:firebase-messaging:$FCM_VERSION"/>
-    <framework src="push.gradle" custom="true" type="gradleReference"/>
-    <dependency id="cordova-support-google-services" version="1.2.1"/>
+
+    <config-file target="config.xml" parent="/*">
+        <preference name="AndroidXEnabled" value="true" />
+        <preference name="GradlePluginGoogleServicesEnabled" value="true" />
+        <preference name="GradlePluginGoogleServicesVersion" value="4.3.15" />
+    </config-file>
     
     <config-file target="res/xml/config.xml" parent="/*">
         <feature name="PushPlugin" >
@@ -53,6 +59,7 @@
         <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
         <uses-permission android:name="android.permission.WAKE_LOCK" />
         <uses-permission android:name="android.permission.VIBRATE"/>
+        <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     </config-file>
 
     <config-file target="AndroidManifest.xml" parent="/manifest/application">

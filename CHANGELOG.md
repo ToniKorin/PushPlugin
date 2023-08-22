@@ -1,5 +1,8 @@
 ## ChangeLog
-#### Version 2.4.2 (2.8.2023)
+#### Version 3.0.0 (22.8.2023)
+- Android 13 (version 33) compatibility
+
+#### Version 2.4.3 (20.8.2023)
 - Android 12 (version 31) compatibility
 
 #### Version 2.3.13 (15.10.2022)
