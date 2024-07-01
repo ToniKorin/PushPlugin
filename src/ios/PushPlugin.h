@@ -27,6 +27,9 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVPlugin.h>
 #import <CoreLocation/CoreLocation.h>
+//#import <CoreLocation/CLLocationManagerDelegate.h>
+
+@import UserNotifications;
 
 @interface PushPlugin : CDVPlugin
 {
@@ -36,6 +39,8 @@
     NSString *callback;
     
     BOOL ready;
+    
+    CLLocationManager *locationManager;
 }
 
 @property (nonatomic, copy) NSString *callbackId;
@@ -44,6 +49,7 @@
 
 @property (nonatomic, strong) NSDictionary *notificationMessage;
 @property BOOL                          isInline;
+@property CLLocationManager *locationManager;
 
 - (void)register:(CDVInvokedUrlCommand*)command;
 
@@ -60,6 +66,11 @@
 - (void) getBackgroundRefreshStatus: (CDVInvokedUrlCommand*)command;
 - (void) getLowPowerModeStatus: (CDVInvokedUrlCommand*)command;
 - (void) getLocationServiceStatus: (CDVInvokedUrlCommand*)command;
+
+- (void) setConfiguration: (CDVInvokedUrlCommand*)command;
+- (void) getAndClearHistory: (CDVInvokedUrlCommand*)command;
+- (void) setActiveState: (CDVInvokedUrlCommand*)command;
+- (void) setInActiveState: (CDVInvokedUrlCommand*)command;
 
 + (NSString *) stringFromDeviceToken:(NSData *)deviceToken;
 

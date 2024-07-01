@@ -134,6 +134,25 @@ PushNotification.prototype.isLocationServiceEnabled = function(successCallback) 
     });
 };
 
+/* Define the configuration for Location push type */
+PushNotification.prototype.setConfiguration = function (config) {
+    cordova.exec(null, null, 'PushPlugin', 'setConfiguration', [config]);
+};
+
+/* Fetch and clear the Locate history of location push type */
+PushNotification.prototype.getAndClearHistory = function (successCallback) {
+    cordova.exec(successCallback, null, 'PushPlugin', 'getAndClearHistory', []);
+};
+
+/* Set application state info for Location push type extension */
+PushNotification.prototype.setActiveState = function (active) {
+    if (active) {
+        cordova.exec(null, null, 'PushPlugin', 'setActiveState', []);
+    } else {
+        cordova.exec(null, null, 'PushPlugin', 'setInActiveState', []);
+    }
+};
+
 
 // ------------------------------------------------------------------
 

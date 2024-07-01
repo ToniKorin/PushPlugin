@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 4.0.0 (1.2.2024)  
+- Location push service for iOS 15 and later 
+
 #### Version 3.0.0 (22.8.2023)
 - Android 13 (version 33) compatibility
 

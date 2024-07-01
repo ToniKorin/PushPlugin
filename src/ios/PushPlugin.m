@@ -26,15 +26,15 @@
 #import "PushPlugin.h"
 #import "VBSingleton.h"
 
-@implementation PushPlugin
+@implementation PushPlugin : CDVPlugin
 
 @synthesize notificationMessage;
 @synthesize isInline;
 
 @synthesize callbackId;
-@synthesize notificationCallbackId;
+@synthesize notificationCallbackId;	
 @synthesize callback;
-
+@synthesize locationManager;
 
 - (void)unregister:(CDVInvokedUrlCommand*)command;
 {
@@ -46,95 +46,74 @@
 
 - (void)register:(CDVInvokedUrlCommand*)command;
 {
+    NSLog(@"PushPlugin.register: 1");
     self.callbackId = command.callbackId;
-    
     NSMutableDictionary* options = [command.arguments objectAtIndex:0];
-    
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-    UIUserNotificationType UserNotificationTypes = UIUserNotificationTypeNone;
-#endif
-    UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeNone;
-    
-    id badgeArg = [options objectForKey:@"badge"];
-    id soundArg = [options objectForKey:@"sound"];
-    id alertArg = [options objectForKey:@"alert"];
-    
-    if ([badgeArg isKindOfClass:[NSString class]])
-    {
-        if ([badgeArg isEqualToString:@"true"]) {
-            notificationTypes |= UIRemoteNotificationTypeBadge;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-            UserNotificationTypes |= UIUserNotificationTypeBadge;
-#endif
-        }
-    }
-    else if ([badgeArg boolValue]) {
-        notificationTypes |= UIRemoteNotificationTypeBadge;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-        UserNotificationTypes |= UIUserNotificationTypeBadge;
-#endif
-    }
-    
-    if ([soundArg isKindOfClass:[NSString class]])
-    {
-        if ([soundArg isEqualToString:@"true"]) {
-            notificationTypes |= UIRemoteNotificationTypeSound;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-            UserNotificationTypes |= UIUserNotificationTypeSound;
-#endif
-        }
-    }
-    else if ([soundArg boolValue]) {
-        notificationTypes |= UIRemoteNotificationTypeSound;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-        UserNotificationTypes |= UIUserNotificationTypeSound;
-#endif
-    }
-    
-    if ([alertArg isKindOfClass:[NSString class]])
-    {
-        if ([alertArg isEqualToString:@"true"]) {
-            notificationTypes |= UIRemoteNotificationTypeAlert;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-            UserNotificationTypes |= UIUserNotificationTypeAlert;
-#endif
-        }
-    }
-    else if ([alertArg boolValue]) {
-        notificationTypes |= UIRemoteNotificationTypeAlert;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-        UserNotificationTypes |= UIUserNotificationTypeAlert;
-#endif
-    }
-    
-    notificationTypes |= UIRemoteNotificationTypeNewsstandContentAvailability;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-    UserNotificationTypes |= UIUserNotificationActivationModeBackground;
-#endif
-    
     self.callback = [options objectForKey:@"ecb"];
-    
-    if (notificationTypes == UIRemoteNotificationTypeNone)
-        NSLog(@"PushPlugin.register: Push notification type is set to none");
-    
-    //isInline = YES;
-    
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-    if ([[UIApplication sharedApplication]respondsToSelector:@selector(registerUserNotificationSettings:)]) {
-        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UserNotificationTypes categories:nil];
-        [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
-        [[UIApplication sharedApplication] registerForRemoteNotifications];
-    } else {
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
-    }
-#else
-    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
-#endif
-    
+    NSString *locatinPush = [options objectForKey:@"locationPush"];
+    UNAuthorizationOptions authOptions =
+                    UNAuthorizationOptionAlert
+                    | UNAuthorizationOptionSound
+                    | UNAuthorizationOptionBadge;
+    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:authOptions completionHandler:^(BOOL granted, NSError * _Nullable error) {
+        if (granted)
+        {
+            NSLog(@"PushPlugin.register: GRANTED");
+        }
+        // Request token always, even if not granted
+        if (locatinPush) { // Location Push Notification
+            [self setupLocationManager];
+
+        } else { // Remote Push Notification
+            [self performSelectorOnMainThread:@selector(registerForRemoteNotifications)
+                                   withObject:nil
+                                waitUntilDone:NO];
+        }
+    }];
+    // TODO https://gist.github.com/blitzcrank/d7f4034b6231df06d0f63bdd1ee7c172
+    // https://github.com/moodlemobile/phonegap-plugin-push/blob/master/src/ios/PushPlugin.m
+    NSLog(@"PushPlugin.register: 2");
     //if (notificationMessage)			// if there is a pending startup notification
     //	[self notificationReceived];	// go ahead and process it
 }
 
+- (void)registerForRemoteNotifications
+{
+    NSLog(@"PushPlugin.registerForRemoteNotifications: ....");
+    [[UIApplication sharedApplication] registerForRemoteNotifications];
+}
+
+- (void)setupLocationManager {
+    NSLog(@"PushPlugin.setupLocationManager");
+    locationManager = [[CLLocationManager alloc] init];
+    //locationManager.delegate = self;
+    locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    locationManager.allowsBackgroundLocationUpdates = YES;
+    //locationManager.distanceFilter = 200.0;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.locationManager requestAlwaysAuthorization];
+    });
+    [self startMonitoringLocationPush];
+}
+
+- (void)startMonitoringLocationPush {
+    NSLog(@"PushPlugin.startMonitoringLocationPush: 2");
+    [locationManager startMonitoringLocationPushesWithCompletion:^(NSData * _Nullable deviceToken, NSError * _Nullable error) {
+        NSLog(@"PushPlugin.startMonitoringLocationPushesWithCompletion");
+        if (error) {
+            NSLog(@"errors %@", error.localizedDescription);
+            [self failWithMessage:@"" withError:error];
+            return;
+        }
+        if (!deviceToken) {
+            [self failWithMessage:@"token missing" withError:nil];
+            return;
+        }
+        NSLog(@"PushPlugin.locationToken: success");
+        NSString *token = [PushPlugin stringFromDeviceToken:deviceToken];
+        [self successWithMessage:[NSString stringWithFormat:@"%@", token]];
+    }];
+}
 /*
  - (void)isEnabled:(NSMutableArray *)arguments withDict:(NSMutableDictionary *)options {
  UIRemoteNotificationType type = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
@@ -143,49 +122,10 @@
  }
  */
 
-- (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-    
-    NSMutableDictionary *results = [NSMutableDictionary dictionary];
+- (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken 
+{
+    NSLog(@"PushPlugin.token: 1");
     NSString *token = [PushPlugin stringFromDeviceToken:deviceToken];
-    [results setValue:token forKey:@"deviceToken"];
-    
-#if !TARGET_IPHONE_SIMULATOR
-    // Get Bundle Info for Remote Registration (handy if you have more than one app)
-    [results setValue:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"] forKey:@"appName"];
-    [results setValue:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"appVersion"];
-    
-    // Check what Notifications the user has turned on.  We registered for all three, but they may have manually disabled some or all of them.
-    NSUInteger rntypes = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
-    
-    // Set the defaults to disabled unless we find otherwise...
-    NSString *pushBadge = @"disabled";
-    NSString *pushAlert = @"disabled";
-    NSString *pushSound = @"disabled";
-    
-    // Check what Registered Types are turned on. This is a bit tricky since if two are enabled, and one is off, it will return a number 2... not telling you which
-    // one is actually disabled. So we are literally checking to see if rnTypes matches what is turned on, instead of by number. The "tricky" part is that the
-    // single notification types will only match if they are the ONLY one enabled.  Likewise, when we are checking for a pair of notifications, it will only be
-    // true if those two notifications are on.  This is why the code is written this way
-    if(rntypes & UIRemoteNotificationTypeBadge){
-        pushBadge = @"enabled";
-    }
-    if(rntypes & UIRemoteNotificationTypeAlert) {
-        pushAlert = @"enabled";
-    }
-    if(rntypes & UIRemoteNotificationTypeSound) {
-        pushSound = @"enabled";
-    }
-    
-    [results setValue:pushBadge forKey:@"pushBadge"];
-    [results setValue:pushAlert forKey:@"pushAlert"];
-    [results setValue:pushSound forKey:@"pushSound"];
-    
-    // Get the users Device Model, Display Name, Token & Version Number
-    UIDevice *dev = [UIDevice currentDevice];
-    [results setValue:dev.name forKey:@"deviceName"];
-    [results setValue:dev.model forKey:@"deviceModel"];
-    [results setValue:dev.systemVersion forKey:@"deviceSystemVersion"];
-    
     if (isInline)
         [self successWithMessage:[NSString stringWithFormat:@"%@", token]];
     else
@@ -193,8 +133,7 @@
     
     if (notificationMessage)			// if there is a pending startup notification
         [self notificationReceived];	// go ahead and process it
-    
-#endif
+    NSLog(@"PushPlugin.token: done");
 }
 
 - (void)didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
@@ -202,35 +141,27 @@
     [self failWithMessage:@"" withError:error];
 }
 
-- (void)notificationReceived {
+- (void)notificationReceived 
+{
     NSLog(@"Notification received");
-    
     if (notificationMessage && self.callback)
     {
         NSMutableString *jsonStr = [NSMutableString stringWithString:@"{"];
-        
         [self parseDictionary:notificationMessage intoJSON:jsonStr];
         if (isInline)
         {
             [jsonStr appendFormat:@"foreground:\"%d\"", 1];
             isInline = NO;
         }
-        else
+        else {
             [jsonStr appendFormat:@"foreground:\"%d\"", 0];
-        
-        [jsonStr appendString:@"}"];
-        
-        NSLog(@"Msg: %@", jsonStr);
-        
-        NSString * jsCallBack = [NSString stringWithFormat:@"%@(%@);", self.callback, jsonStr];
-        if ([self.webView respondsToSelector:@selector(stringByEvaluatingJavaScriptFromString:)]) {
-            // Cordova-iOS pre-4
-            [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsCallBack waitUntilDone:NO];
-        } else {
-            // Cordova-iOS 4+
-            [self.webView performSelectorOnMainThread:@selector(evaluateJavaScript:completionHandler:) withObject:jsCallBack waitUntilDone:NO];
         }
-        //get javascript function to fire in background mode
+        [jsonStr appendString:@"}"];
+        NSLog(@"Msg: %@", jsonStr);
+        // send notification content to main js process
+        NSString * jsCallBack = [NSString stringWithFormat:@"%@(%@);", self.callback, jsonStr];
+        [self.commandDelegate evalJs:jsCallBack];
+        // get javascript function to fire in background mode
         CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:jsonStr];
         [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];
         
@@ -264,17 +195,19 @@
     }
 }
 
-- (void)setApplicationIconBadgeNumber:(CDVInvokedUrlCommand *)command {
-    
+- (void)setApplicationIconBadgeNumber:(CDVInvokedUrlCommand *)command 
+{
+    NSLog(@"PushPlugin.setBadgeNumber");
     self.callbackId = command.callbackId;
-    
     NSMutableDictionary* options = [command.arguments objectAtIndex:0];
     int badge = [[options objectForKey:@"badge"] intValue] ?: 0;
-    
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:badge];
-    
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    [prefs setInteger:badge forKey:@"badgeCount"];
+    [prefs synchronize];
     [self successWithMessage:[NSString stringWithFormat:@"app badge count set to %d", badge]];
 }
+
 -(void)successWithMessage:(NSString *)message
 {
     if (self.callbackId != nil)
@@ -288,16 +221,28 @@
 {
     NSString        *errorMessage = (error) ? [NSString stringWithFormat:@"%@ - %@", message, [error localizedDescription]] : message;
     CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
-    
     [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];
 }
 
-- (void)didCompleteBackgroundProcess:(CDVInvokedUrlCommand*)command {
+- (void)didCompleteBackgroundProcess:(CDVInvokedUrlCommand*)command 
+{
     NSLog(@"didCompleteBackgroundProcess called - calling background handler %lx",(unsigned long)[VBSingleton sharedInstance].backgroundHandler);
     if ([VBSingleton sharedInstance].backgroundHandler != nil) {
         [VBSingleton sharedInstance].backgroundHandler(UIBackgroundFetchResultNewData);
         [VBSingleton sharedInstance].backgroundHandler = nil;
     }
+}
+
+- (void)pluginInitialize
+{
+    NSLog(@"PushPlugin.pluginInitialize called");
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(finishLaunching:) name:UIApplicationDidFinishLaunchingNotification object:nil];
+}
+
+- (void)finishLaunching:(NSNotification *)notification
+{
+    NSLog(@"PushPlugin.finishLaunching called");
+    self.notificationMessage = notification.userInfo;
 }
 
 //
@@ -308,24 +253,13 @@
 - (void) switchToSettings: (CDVInvokedUrlCommand*)command
 {
     self.callbackId = command.callbackId;
-    if (UIApplicationOpenSettingsURLString != nil ){
-        if ([[UIApplication sharedApplication] respondsToSelector:@selector(openURL:options:completionHandler:)]) {
-#if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString: UIApplicationOpenSettingsURLString] options:@{} completionHandler:^(BOOL success) {
-                if (success) {
-                    [self successWithMessage:@"OK"];
-                }else{
-                    [self failWithMessage:@"NOK" withError:nil];
-                }
-            }];
-#endif
-        }else{
-            [[UIApplication sharedApplication] openURL: [NSURL URLWithString: UIApplicationOpenSettingsURLString]];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString: UIApplicationOpenSettingsURLString] options:@{} completionHandler:^(BOOL success) {
+        if (success) {
             [self successWithMessage:@"OK"];
+        }else{
+            [self failWithMessage:@"NOK" withError:nil];
         }
-    }else{
-        [self failWithMessage:@"Not supported below iOS 8" withError:nil];
-    }
+    }];
 }
 
 // Background refresh status
@@ -387,6 +321,58 @@
         status = @"DISABLED";
     }
     [self successWithMessage:status];
+}
+
+// Set configuration for location push type
+- (void) setConfiguration:(CDVInvokedUrlCommand *)command
+{
+    //self.callbackId = command.callbackId;
+    NSLog(@"PushPlugin.setConfiguration");
+    NSMutableDictionary* config = [command.arguments objectAtIndex:0];
+    NSError * err;
+    NSData * jsonData = [NSJSONSerialization  dataWithJSONObject:config options:0 error:&err];
+    NSString * configStr = [[NSString alloc] initWithData:jsonData   encoding:NSUTF8StringEncoding];
+
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    [prefs setValue:configStr forKey:@"config"];
+    [prefs synchronize];
+    //[self successWithMessage:@"OK"];
+}
+
+// Get and clear history for location push type
+- (void) getAndClearHistory:(CDVInvokedUrlCommand *)command
+{
+    NSLog(@"PushPlugin.getAndClearHistory");
+    self.callbackId = command.callbackId;
+    // read
+    NSUserDefaults * prefs = [NSUserDefaults standardUserDefaults];
+    NSString * historyStr = [prefs valueForKey:@"history"];
+    if (historyStr == nil) {
+        historyStr = @"{}";
+    }
+    // clear
+    [prefs setValue:@"{}" forKey:@"history"];
+    [prefs synchronize];
+
+    [self successWithMessage:historyStr];
+}
+
+// Timestamp of app active state for location push extension
+- (void) setActiveState:(CDVInvokedUrlCommand *)command
+{
+    NSLog(@"PushPlugin.setActiveState");
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    [prefs setObject:[NSDate date] forKey:@"active"];
+    [prefs synchronize];
+}
+
+// App in-active state for location extension
+- (void) setInActiveState:(CDVInvokedUrlCommand *)command
+{
+    NSLog(@"PushPlugin.setInActiveState");
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    [prefs removeObjectForKey:@"active"];
+    [prefs synchronize];
 }
 
 + (NSString *)stringFromDeviceToken:(NSData *)deviceToken {
