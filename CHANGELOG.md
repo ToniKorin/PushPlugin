@@ -1,4 +1,7 @@
 ## ChangeLog
+#### Version 5.0.0 (1.7.2024)
+- FCM api update for Android
+
 #### Version 4.0.0 (1.2.2024)  
 - Location push service for iOS 15 and later 
 

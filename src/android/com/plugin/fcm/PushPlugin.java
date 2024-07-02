@@ -12,18 +12,20 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PermissionHelper;
+import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -31,7 +33,7 @@ import java.util.Iterator;
  */
 
 public class PushPlugin extends CordovaPlugin {
-	public static final String TAG = "PushPlugin";
+	public static final String TAG = "PushPlugin-v2";
 
 	public static final String REGISTER = "register";
 	public static final String UNREGISTER = "unregister";
@@ -40,6 +42,7 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String CANCEL_NOTIFICATION = "cancelNotification";
 	public static final String SWITCH_TO_SETTINGS = "switchToSettings";
 	public static final String GET_LOCATION_SERVICE_STATUS = "getLocationServiceStatus";
+	public static final String ASK_NOTIFICATION_PERMISSION = "askNotificationPermission";
 	public static final String PREFS_NAME = "PushPlugin";
 	public static final String TOKEN_UPDATE_SERVICE_CLASS = "tokenUpdateServiceClass";
 	private static final LocalNotification localNotification = new LocalNotification();
@@ -53,6 +56,7 @@ public class PushPlugin extends CordovaPlugin {
 	private static boolean gStartServiceAlwaysInBackground = false;
 	private static boolean gTapNotificationToStartApp = false;
 
+	private  CallbackContext cbContext;
 	/**
 	 * Gets the application context from cordova's main activity.
 	 * @return the application context
@@ -65,6 +69,7 @@ public class PushPlugin extends CordovaPlugin {
 	public boolean execute(String action, JSONArray data, CallbackContext callbackContext) {
 
 		boolean result = false;
+		cbContext = callbackContext;
 
 		Log.v(TAG, "execute: action=" + action);
 
@@ -92,11 +97,19 @@ public class PushPlugin extends CordovaPlugin {
 				gStartServiceAlwaysInBackground = jo.optBoolean("startServiceAlwaysInBackground",false);
 				gTapNotificationToStartApp = jo.optBoolean("tapNotificationToStartApp",false);
 
-				String token = FirebaseInstanceId.getInstance().getToken();
-				if (token == null) {
-					token = FirebaseInstanceId.getInstance().getToken(gSenderID, "FCM");
-				}
-				updateInstanceId(token);
+				FirebaseMessaging.getInstance().getToken()
+					.addOnCompleteListener(new OnCompleteListener<String>() {
+						@Override
+						public void onComplete(Task<String> task) {
+							if (!task.isSuccessful()) {
+								Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+								return;
+							}
+							// Get new FCM registration token and update it to webview
+							String token = task.getResult();
+							updateInstanceId(token);
+						}
+				});
 				result = true;
 				callbackContext.success();
 			} catch (Exception e) {
@@ -109,14 +122,13 @@ public class PushPlugin extends CordovaPlugin {
 				sendExtras(gCachedExtras);
 				gCachedExtras = null;
 			}
-
 		} else if (UNREGISTER.equals(action)) {
 			try {
-				FirebaseInstanceId.getInstance().deleteInstanceId();
 				Log.v(TAG, "UNREGISTER");
+				FirebaseMessaging.getInstance().deleteToken();
 				result = true;
 				callbackContext.success();
-			} catch (IOException e) {
+			} catch (Exception e) {
 				Log.e(TAG, "execute: Got Exception " + e.getMessage());
 				callbackContext.error(e.getMessage());
 			}
@@ -150,6 +162,10 @@ public class PushPlugin extends CordovaPlugin {
 			callbackContext.success();
 		} else if (GET_LOCATION_SERVICE_STATUS.equals(action)) {
 			callbackContext.success(getLocationServiceStatus());
+		} else if (ASK_NOTIFICATION_PERMISSION.equals(action)) {
+			Log.v(TAG, "askNotificationPermission");
+			boolean force = data.optBoolean(0, false);
+			handleNotificationPermission(force);
 		} else {
 			result = false;
 			Log.e(TAG, "Invalid action : " + action);
@@ -157,6 +173,32 @@ public class PushPlugin extends CordovaPlugin {
 		}
 
 		return result;
+	}
+
+	private void handleNotificationPermission(boolean force) {
+		if (android.os.Build.VERSION.SDK_INT < 33) {
+			return;
+		}
+		final String NOTIFICATION_PERMISSION_ASKED= "NOTIFICATION_PERMISSION_ASKED";
+		SharedPreferences sp = getApplicationContext().getSharedPreferences(PushPlugin.PREFS_NAME, Context.MODE_PRIVATE);
+		boolean alreadyAsked = sp.getBoolean(NOTIFICATION_PERMISSION_ASKED, false);
+		if (!alreadyAsked || force){
+			Log.d(TAG, "POST_NOTIFICATIONS permission request");
+			String[] qPermissions = {"android.permission.POST_NOTIFICATIONS"};
+			PermissionHelper.requestPermissions(this, 0, qPermissions);
+			SharedPreferences.Editor editor = sp.edit();
+			editor.putBoolean(NOTIFICATION_PERMISSION_ASKED, true);
+			editor.commit();
+		}
+	}
+
+	// just dummmy handling for result of permission request
+	public void onRequestPermissionResult(int requestCode, String[] permissions,
+										  int[] grantResults) throws JSONException
+	{
+		if (this.cbContext == null) return;
+		PluginResult result = new PluginResult(PluginResult.Status.OK);
+		cbContext.sendPluginResult(result);
 	}
 
 	public void switchToSettings(String mode) {

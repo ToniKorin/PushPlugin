@@ -36,6 +36,11 @@ PushNotification.prototype.unregister = function(successCallback, errorCallback,
      cordova.exec(successCallback, errorCallback, "PushPlugin", "unregister", [options]);
 };
 
+// Call this to ask permission for Android notifications (version 33 and later)
+PushNotification.prototype.askNotificationPermission = function(force) {
+    cordova.exec(null, null, "PushPlugin", "askNotificationPermission", [force]);
+};
+
     // Call this if you want to show toast notification on WP8
     PushNotification.prototype.showToastNotification = function (successCallback, errorCallback, options) {
         if (errorCallback == null) { errorCallback = function () { } }

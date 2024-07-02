@@ -4,7 +4,7 @@
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     id="cordova-plugin-background-push"
-    version="4.0.0">
+    version="5.0.0">
 
     <name>PushPlugin</name>
     <author>Toni Korin</author>
@@ -12,7 +12,7 @@
     <description>
     This plugin allows your application to receive push notifications on Android, iOS, WP8 and Windows8 devices.
     Android uses Firebase Messaging (+ background task support).
-    iOS uses Apple APNS Notifications (+ Silent Notification support triggering bg task).
+    iOS uses Apple APNS Notifications (+ Silent Notification support triggering bg task and Location Push).
     WP8 uses Microsoft MPNS Notifications.
     Windows8 uses Microsoft WNS Notifications.
     This is a fork of https://github.com/jbeuckm/PushPlugin and then enhanced with Android BG support.
@@ -36,11 +36,12 @@
     <platform name="android">
 
     <preference name="ANDROID_SUPPORT_V13_VERSION" default="27.+"/>
-    <preference name="FCM_VERSION" default="21.1.0"/>
+    <!--preference name="FCM_VERSION" default="21.1.0"/-->
     <framework src="com.android.support:support-v13:$ANDROID_SUPPORT_V13_VERSION"/>
     <framework src="androidx.core:core:1.10.1"/>
-    <framework src="com.google.firebase:firebase-core:$FCM_VERSION"/>
-    <framework src="com.google.firebase:firebase-messaging:$FCM_VERSION"/>
+    <framework src="com.google.firebase:firebase-core:21.1.1"/>
+    <framework src="com.google.firebase:firebase-messaging:24.0.0"/>
+    <framework src="com.google.android.gms:play-services-tasks:18.2.0"/>
 
     <config-file target="config.xml" parent="/*">
         <preference name="AndroidXEnabled" value="true" />
@@ -69,15 +70,9 @@
           <action android:name="com.google.firebase.MESSAGING_EVENT"/>
         </intent-filter>
       </service>
-      <service android:name="com.plugin.fcm.PushInstanceIDListenerService" android:exported="true">
-        <intent-filter>
-          <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
-        </intent-filter>
-      </service>
     </config-file>
 
     <source-file src="src/android/com/plugin/fcm/FCMService.java" target-dir="src/com/plugin/fcm/" />
-    <source-file src="src/android/com/plugin/fcm/PushInstanceIDListenerService.java" target-dir="src/com/plugin/fcm/" />
     <source-file src="src/android/com/plugin/fcm/LocalNotification.java" target-dir="src/com/plugin/fcm/" />
     <source-file src="src/android/com/plugin/fcm/PushHandlerActivity.java" target-dir="src/com/plugin/fcm/" />
     <source-file src="src/android/com/plugin/fcm/PushPlugin.java" target-dir="src/com/plugin/fcm/" />

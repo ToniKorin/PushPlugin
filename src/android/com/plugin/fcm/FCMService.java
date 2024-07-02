@@ -3,6 +3,7 @@ package com.plugin.fcm;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -57,6 +58,30 @@ public class FCMService extends FirebaseMessagingService  {
             }
         }
 	}
+
+    @Override
+    public void onNewToken(String refreshedToken) {
+        Log.d(TAG, "Refreshed token: " + refreshedToken);
+        if (PushPlugin.isInForeground()) {
+            PushPlugin.updateInstanceId(refreshedToken);
+        } else {
+            String tokenUpdateService = "com.tonikorin.cordova.plugin.LocationProvider.LocationService";
+            try {
+                SharedPreferences sp = this.getSharedPreferences(PushPlugin.PREFS_NAME, Context.MODE_PRIVATE);
+                tokenUpdateService = sp.getString(PushPlugin.TOKEN_UPDATE_SERVICE_CLASS, tokenUpdateService);
+            } catch (Exception e){
+                Log.e(TAG, "Failed to read SharedPreferences: " + e.getMessage());
+            }
+            Intent serviceIntent = new Intent();
+            serviceIntent.putExtra("regid", refreshedToken);
+            serviceIntent.setClassName(this, tokenUpdateService);
+            if (android.os.Build.VERSION.SDK_INT >= 29) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+        }
+    }
 
 	private void startBackgroundService(Context context, Bundle extras, String serviceClassName)
 	{
