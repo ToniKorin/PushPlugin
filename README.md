@@ -24,7 +24,7 @@ This plugin is for use with [Cordova](http://incubator.apache.org/cordova/), and
 
 
 
-##<a name="license"></a> LICENSE
+## <a name="license"></a> LICENSE
 
 	The MIT License
 
@@ -52,7 +52,7 @@ This plugin is for use with [Cordova](http://incubator.apache.org/cordova/), and
 
 
 
-##<a name="manual_installation"></a>Manual Installation
+## <a name="manual_installation"></a>Manual Installation
 
 ### Manual Installation for Amazon Fire OS
 
@@ -322,7 +322,7 @@ To be called as soon as the device becomes ready.
 
 ```js
 $("#app-status-ul").append('<li>registering ' + device.platform + '</li>');
-if ( device.platform == 'android' || device.platform == 'Android' || device.platform == "amazon-fireos" ){
+if ( device.platform.toLowerCase() == 'android' || device.platform == "amazon-fireos" ){
     pushNotification.register(
     successHandler,
     errorHandler,
